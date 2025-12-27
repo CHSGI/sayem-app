@@ -10,7 +10,7 @@ import tw from "../tailwind.config";
 import { Feather } from "@expo/vector-icons";
 
 interface TIProps {
-  title: string;
+  title?: string;
   placeholder: string;
   keyboard: KeyboardTypeOptions;
   password?: boolean;
@@ -23,9 +23,11 @@ interface TIProps {
 const TextInputComp = (props: TIProps) => {
   return (
     <View style={tw`my-2`}>
-      <Text style={tw`font-Medium text-primary text-sm mb-2`}>
-        {props.title}
-      </Text>
+      {props.title && (
+        <Text style={tw`font-Medium text-primary text-sm mb-2`}>
+          {props.title}
+        </Text>
+      )}
       <View style={tw`flex flex-row items-center bg-gray-100 rounded-lg p-2`}>
         <View style={tw` flex-1`}>
           <TextInput

@@ -14,6 +14,8 @@ import Animated, {
   Easing,
 } from "react-native-reanimated";
 import { StatusBar } from "expo-status-bar";
+import { Image, ImageBackground } from "expo-image";
+import { router } from "expo-router";
 
 interface drawerProps {
   title: string;
@@ -81,10 +83,11 @@ const DrawerContainer = (props: drawerProps) => {
             </View>
             {/* routes  */}
             <View style={tw``}>
+              {/* profile  */}
               <TouchableOpacity
                 onPress={() => {
                   //function to execute
-
+                  router.push("/Drawer/profile");
                   //close dropdown
                   setSeeSB(!viewSB);
                 }}
@@ -99,10 +102,11 @@ const DrawerContainer = (props: drawerProps) => {
                   Profile Setting
                 </Text>
               </TouchableOpacity>
+              {/* notifications  */}
               <TouchableOpacity
                 onPress={() => {
                   //function to execute
-
+                  router.push("/Drawer/notification");
                   //close dropdown
                   setSeeSB(!viewSB);
                 }}
@@ -113,6 +117,7 @@ const DrawerContainer = (props: drawerProps) => {
                   Notifications
                 </Text>
               </TouchableOpacity>
+              {/* logout  */}
               <TouchableOpacity
                 onPress={() => {
                   //function to execute
@@ -135,7 +140,13 @@ const DrawerContainer = (props: drawerProps) => {
           </Animated.View>
         )}
         <View style={tw`flex-1`} onTouchStart={() => setSeeSB(false)}>
-          {props.children}
+          <ImageBackground
+            source={require("../assets/Images/mobile-pattern.png")}
+            style={tw`flex-1`}
+            contentFit="cover"
+          >
+            {props.children}
+          </ImageBackground>
         </View>
       </View>
     </View>

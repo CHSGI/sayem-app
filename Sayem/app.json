@@ -41,6 +41,13 @@
       ],
       "expo-secure-store"
     ],
-    "scheme": "sayem"
+    "scheme": "sayem",
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "67cc6e8b-e56a-401a-9d52-c3cf56914650"
+      }
+    },
+    "owner": "chsg"
   }
 }
