@@ -10,24 +10,41 @@ import { Dimensions } from "react-native";
 const screenWidth = Dimensions.get("window").width;
 
 const chartConfig = {
-  backgroundGradientFrom: "#1E2923",
-  backgroundGradientFromOpacity: 0,
-  backgroundGradientTo: "#08130D",
-  backgroundGradientToOpacity: 0.5,
-  color: (opacity = 1) => `rgba(26, 255, 146, ${opacity})`,
-  strokeWidth: 2, // optional, default 3
-  barPercentage: 0.5,
+  backgroundGradientFrom: "#fff",
+  // backgroundGradientFromOpacity: 0,
+  backgroundGradientTo: "#fff",
+  // backgroundGradientToOpacity: 0.5,
+  strokeWidth: 3, // optional, default 3
   useShadowColorFromDataset: false, // optional
+
+  // 🔑 SOLID BAR COLOR
+  fillShadowGradient: "#000", // your bar color
+  fillShadowGradientOpacity: 1, // must be 1
+
+  // remove grid lines opacity weirdness
+  decimalPlaces: 0,
+  barPercentage: 1.5,
+  color: () => "#000",
+  labelColor: () => "#000",
 };
 
 const data = {
-  labels: ["January", "February", "March", "April", "May", "June"],
+  labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
   datasets: [
     {
-      data: [20, 45, 28, 80, 99, 43],
+      data: [50, 25, 48, 80, 99, 60],
+      colors: [
+        () => "#000",
+        () => "#000",
+        () => "#000",
+        () => "#000",
+        () => "#000",
+        () => "#000",
+      ],
     },
   ],
 };
+
 const ListComponent = (props: { bookingId: string }) => {
   return (
     <View
@@ -121,15 +138,25 @@ const Earnings = () => {
           {/* chart goes here  */}
           <View style={tw`my-5`}>
             {/* chart starts  */}
-            <BarChart
-              style={tw`w-full h-22`}
-              data={data}
-              width={screenWidth}
-              height={220}
-              yAxisLabel="$"
-              chartConfig={chartConfig}
-              verticalLabelRotation={30}
-            />
+            <ScrollView
+              horizontal
+              style={tw`py-2`}
+              showsHorizontalScrollIndicator={false}
+            >
+              <BarChart
+                style={tw`w-full h-auto`}
+                data={data}
+                width={screenWidth}
+                height={220}
+                yAxisLabel="$"
+                yAxisSuffix=""
+                chartConfig={chartConfig}
+                verticalLabelRotation={30}
+                flatColor
+                withCustomBarColorFromData
+              />
+            </ScrollView>
+
             {/* chart ends  */}
           </View>
         </View>

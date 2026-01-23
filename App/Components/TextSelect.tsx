@@ -1,8 +1,9 @@
 import { View, Text, TouchableOpacity, Modal, Platform } from "react-native";
 import React from "react";
 import tw from "../tailwind.config";
-import { Feather } from "@expo/vector-icons";
+import { Feather, Ionicons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
+import { StatusBar } from "expo-status-bar";
 
 interface textSelectProps {
   title?: string;
@@ -22,14 +23,14 @@ interface textSelectProps {
 
 const TextSelect = (props: textSelectProps) => {
   return (
-    <View style={tw`my-2`}>
+    <View style={tw`my-2 `}>
       {props.title && (
         <Text style={tw`font-Medium text-primary text-sm mb-2`}>
           {props.title}
         </Text>
       )}
       {Platform.OS === "ios" ? (
-        <View>
+        <View style={tw`border border-gray-400 py-1 rounded-lg`}>
           <TouchableOpacity
             style={tw`bg-gray-100 rounded-lg p-2 flex flex-row items-center`}
             onPress={props.setSelectState}
@@ -47,10 +48,26 @@ const TextSelect = (props: textSelectProps) => {
           <Modal
             visible={props.selectState}
             animationType="slide"
-            // transparent={true}
+            transparent={true}
             onRequestClose={props.setSelectState}
           >
-            <View style={tw`flex-1 items-center justify-center`}>
+            <StatusBar style="auto" />
+            <View style={tw`flex-1 items-center justify-center bg-white/80`}>
+              <TouchableOpacity
+                onPress={props.setSelectState}
+                style={tw`w-full px-5 flex-row justify-end`}
+              >
+                {/* <Text
+                  style={tw`font-Medium text-primary text-center text-lg mt-4`}
+                >
+                  Close
+                </Text> */}
+                <Ionicons
+                  name="close-outline"
+                  size={50}
+                  color={tw.color("gray-600")}
+                />
+              </TouchableOpacity>
               <View
                 style={tw`w-11/12 mx-auto min-h-10 rounded-lg shadow-lg bg-white p-5`}
               >
@@ -84,18 +101,13 @@ const TextSelect = (props: textSelectProps) => {
                   </Picker>
                 </View>
               </View>
-              <TouchableOpacity onPress={props.setSelectState}>
-                <Text
-                  style={tw`font-Medium text-primary text-center text-lg mt-2`}
-                >
-                  Close
-                </Text>
-              </TouchableOpacity>
             </View>
           </Modal>
         </View>
       ) : (
-        <View style={tw`bg-gray-100 rounded-lg p-2 flex flex-row items-center`}>
+        <View
+          style={tw`bg-gray-100 rounded-lg p-2 flex flex-row items-center border border-gray-400 py-1`}
+        >
           <Picker
             onValueChange={(itemValue: string, itemIndex: number) =>
               props.onValueChange({ itemValue, itemIndex })

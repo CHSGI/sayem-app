@@ -32,3 +32,41 @@ export const deliveryStatus = [
   { label: "Arrived at Drop-off", value: "arrived" },
   { label: "Goods Delivered", value: "delivered" },
 ];
+
+export const jobCategoryFilter = [
+  {
+    label: "All Jobs",
+    value: "all",
+  },
+  {
+    label: "Call up",
+    value: "callup",
+  },
+  {
+    label: "Freight",
+    value: "freight",
+  },
+  {
+    label: "ETTO",
+    value: "etto",
+  },
+  {
+    label: "Local Delivery",
+    value: "local",
+  },
+];
+
+export const jobPayFilter = [
+  {
+    label: "Highest Pay",
+    value: "highest",
+  },
+  {
+    label: "Closest",
+    value: "closest",
+  },
+  {
+    label: "Newest",
+    value: "newest",
+  },
+];

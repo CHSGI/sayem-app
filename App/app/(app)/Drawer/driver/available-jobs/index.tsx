@@ -6,6 +6,7 @@ import TextSelect from "../../../../../Components/TextSelect";
 import CustomButton from "../../../../../Components/CustomButton";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
+import { jobCategoryFilter, jobPayFilter } from "../../../../../lib/data";
 
 const HeaderComponent = () => {
   const [views, setViews] = React.useState({
@@ -20,8 +21,9 @@ const HeaderComponent = () => {
         <View style={tw`flex-1`}>
           <TextSelect
             title=""
-            data={[]}
-            selectedValue={"--Job Category--"}
+            data={jobCategoryFilter}
+            placeholder={"--Job Category--"}
+            selectedValue={""}
             onValueChange={() => {}}
             selectState={views.type}
             setSelectState={() => setViews({ ...views, type: !views.type })}
@@ -31,7 +33,7 @@ const HeaderComponent = () => {
         <View style={tw`flex-1`}>
           <TextSelect
             placeholder="--Pay filter--"
-            data={[]}
+            data={jobPayFilter}
             selectedValue={""}
             onValueChange={() => {}}
             selectState={views.pay}
@@ -107,7 +109,7 @@ const RenderItem = () => {
       </View>
       {/* tags */}
       <View
-        style={tw`flex flex-row items-start gap-2 my-2 border border-yellow-300 bg-yellow-50 p-2 rounded-lg`}
+        style={tw`flex flex-row items-start gap-2 my-2 mb-5 border border-yellow-300 bg-yellow-50 p-2 rounded-lg`}
       >
         <Ionicons
           name="information-circle-outline"

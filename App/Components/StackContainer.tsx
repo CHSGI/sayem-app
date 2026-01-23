@@ -41,7 +41,7 @@ const StackContainer = (props: StackContainerProps) => {
       <View style={tw`flex-1 bg-white`}>
         <ImageBackground
           source={require("../assets/Images/mobile-pattern.png")}
-          style={tw`flex-1 pb-10`}
+          style={tw`flex-1 pb-5`}
           contentFit="cover"
         >
           {props.children}

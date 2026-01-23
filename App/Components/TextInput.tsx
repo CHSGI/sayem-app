@@ -28,7 +28,9 @@ const TextInputComp = (props: TIProps) => {
           {props.title}
         </Text>
       )}
-      <View style={tw`flex flex-row items-center bg-gray-100 rounded-lg p-2`}>
+      <View
+        style={tw`flex flex-row items-center bg-gray-100 rounded-lg p-3 border border-gray-400`}
+      >
         <View style={tw` flex-1`}>
           <TextInput
             keyboardType={props.keyboard}
