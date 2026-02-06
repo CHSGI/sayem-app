@@ -13,6 +13,7 @@ import {
   Foundation,
 } from "@expo/vector-icons";
 import { Link, router } from "expo-router";
+import { accountState } from "../store/stateStore";
 
 const DrawerContent = (props: DrawerContentComponentProps) => {
   const DrivevrNav = [
@@ -84,7 +85,8 @@ const DrawerContent = (props: DrawerContentComponentProps) => {
       ),
     },
   ];
-  const NavView = false ? UserNav : DrivevrNav;
+  const { role } = accountState();
+  const NavView = role === "individual/business" ? UserNav : DrivevrNav;
   // const navigation = useNavigation();
   return (
     <View style={tw`flex-1`}>

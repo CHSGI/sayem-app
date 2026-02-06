@@ -24,7 +24,7 @@ const Register = () => {
     <View style={tw`flex-1 mt-12`}>
       <StatusBar style="dark" />
       <ImageBackground
-        style={tw`flex-1`}
+        style={tw`flex-1 pb-5`}
         source={require("../../assets/Images/mobile-pattern.png")}
         contentFit="cover"
       >

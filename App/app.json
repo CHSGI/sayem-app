@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Sayem",
-    "slug": "Sayem",
+    "name": "Sayem Route",
+    "slug": "sayem-route",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -14,7 +14,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.chsg.sayem",
+      "bundleIdentifier": "com.chsg.sayemroute",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
@@ -55,9 +55,8 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "67cc6e8b-e56a-401a-9d52-c3cf56914650"
+        "projectId": "5233fe7f-f7e8-4436-bbd9-398001625d2f"
       }
-    },
-    "owner": "chsg"
+    }
   }
 }

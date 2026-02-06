@@ -13,9 +13,11 @@ import TextInputComp from "../../../Components/TextInput";
 import ToggleContainer from "../../../Components/ToggleContainer";
 import Driver from "../../../Components/KYC/Driver";
 import User from "../../../Components/KYC/User";
+import { accountState } from "../../../store/stateStore";
 
 const Profile = () => {
   const [password, setViewPasword] = React.useState(false);
+  const { role } = accountState();
   return (
     <DrawerContainer title="Profile Settings">
       <KeyboardAvoidingView
@@ -124,7 +126,7 @@ const Profile = () => {
           {/* kyc verification  */}
           <View>
             {/* conditionally render based on user role  */}
-            {true ? <User /> : <Driver />}
+            {role === "individual/business" ? <User /> : <Driver />}
           </View>
           {/* danger zone  */}
           <View style={tw`border border-red-500 bg-red-50 p-5 rounded-lg my-3`}>

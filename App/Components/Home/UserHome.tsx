@@ -49,12 +49,12 @@ const UserHome = () => {
   ];
   return (
     <ScrollView style={tw`p-5 gap-5`} showsVerticalScrollIndicator={false}>
-      {/* <CustomButton
+      <CustomButton
         title="KYC"
         onPress={() => {
           router.push("/kyc");
         }}
-      /> */}
+      />
       <Text style={tw`font-SemiBold text-xl text-primary`}>
         Welcome Back, {"User"}
       </Text>

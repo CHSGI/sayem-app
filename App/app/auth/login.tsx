@@ -8,6 +8,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import CustomButton from "../../Components/CustomButton";
 import TextInputComp from "../../Components/TextInput";
 import { router } from "expo-router";
+import { showToastable } from "react-native-toastable";
+import { accountState } from "../../store/stateStore";
 
 const Login = () => {
   const [viewPassword, setViewPassword] = React.useState(false);
@@ -17,6 +19,7 @@ const Login = () => {
     accountType: "",
     password: "",
   });
+  const { setRole } = accountState();
   return (
     <SafeAreaView style={tw`flex-1 `}>
       <StatusBar style="dark" />
@@ -62,7 +65,10 @@ const Login = () => {
                 setSelectState={() => setSelectState(!selectState)}
                 selectedValue={loginDetails.accountType}
                 data={[
-                  { label: "Individual/Business", value: "user" },
+                  {
+                    label: "Individual/Business",
+                    value: "individual/business",
+                  },
                   { label: "Driver", value: "driver" },
                 ]}
                 onValueChange={({ itemValue, itemIndex }) => {
@@ -94,7 +100,22 @@ const Login = () => {
               <CustomButton
                 title="Sign In"
                 onPress={() => {
-                  router.replace("/(app)/Drawer");
+                  if (!loginDetails.accountType) {
+                    // show toastatble
+                    showToastable({
+                      status: "danger",
+                      message: "choose account type",
+                    });
+                  } else {
+                    //set satte
+                    setRole(
+                      loginDetails.accountType as
+                        | "individual/business"
+                        | "driver",
+                    );
+                    // route
+                    router.replace("/(app)/Drawer");
+                  }
                 }}
               />
             </View>

@@ -11,6 +11,7 @@ export const vehicleType = [
   { label: "Moto Cycle", value: "Electronics" },
   { label: "Van", value: "Clothing" },
   { label: "20ft Truck", value: "Food" },
+  { label: "2 * 20ft Truck", value: "2 * 20ft Truck" },
   { label: "40ft Truck", value: "Machinery" },
   { label: "45ft Truck", value: "Furniture" },
 ];
