@@ -1,0 +1,12 @@
+import { z } from "zod";
+
+const envSchema = z.object({
+  DATABASE_URL: z.string().url(),
+  JWT_ACCESS_SECRET: z.string().min(10),
+  JWT_REFRESH_SECRET: z.string().min(10),
+  GOOGLE_CLIENT_ID: z.string().min(1),
+  APPLE_BUNDLE_ID: z.string().min(1),
+  PORT: z.coerce.number().default(4000),
+});
+
+export const env = envSchema.parse(process.env);
