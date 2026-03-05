@@ -37,6 +37,24 @@ function accountTypeToString(type: AccountType): string {
   return type === AccountType.DRIVER ? "driver" : "individual/business";
 }
 
+function handleUniqueConstraint(err: unknown): never {
+  if (
+    err instanceof Prisma.PrismaClientKnownRequestError &&
+    err.code === "P2002"
+  ) {
+    const target = err.meta?.target as string[] | string | undefined;
+    const fields = Array.isArray(target) ? target : typeof target === "string" ? [target] : [];
+    if (fields.some((f) => f.includes("email"))) {
+      throw new AppError(409, "This email is already associated with another sign-in method");
+    }
+    if (fields.some((f) => f.includes("providerId"))) {
+      throw new AppError(409, "This provider account is already linked to another user");
+    }
+    throw new AppError(409, `Unique constraint violation on: ${fields.join(", ") || "unknown"}`);
+  }
+  throw err;
+}
+
 async function issueTokens(user: {
   id: string;
   name: string;
@@ -180,16 +198,7 @@ export async function googleLogin(data: {
       },
     });
   } catch (err) {
-    if (
-      err instanceof Prisma.PrismaClientKnownRequestError &&
-      err.code === "P2002"
-    ) {
-      throw new AppError(
-        409,
-        "This email is already associated with another sign-in method",
-      );
-    }
-    throw err;
+    handleUniqueConstraint(err);
   }
 
   return issueTokens(user);
@@ -246,16 +255,7 @@ export async function appleLogin(data: {
       },
     });
   } catch (err) {
-    if (
-      err instanceof Prisma.PrismaClientKnownRequestError &&
-      err.code === "P2002"
-    ) {
-      throw new AppError(
-        409,
-        "This email is already associated with another sign-in method",
-      );
-    }
-    throw err;
+    handleUniqueConstraint(err);
   }
 
   return issueTokens(user);
