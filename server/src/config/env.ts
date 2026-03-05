@@ -3,9 +3,9 @@ import { z } from "zod";
 const envSchema = z.object({
   DATABASE_URL: z.string().url(),
   JWT_ACCESS_SECRET: z.string().min(32),
-  JWT_REFRESH_SECRET: z.string().min(32),
   GOOGLE_CLIENT_ID: z.string().min(1),
   APPLE_BUNDLE_ID: z.string().min(1),
+  CORS_ORIGIN: z.string().default("*"),
   PORT: z.coerce.number().default(4000),
 });
 

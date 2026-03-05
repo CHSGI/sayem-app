@@ -50,7 +50,7 @@ export const swaggerDocument = {
         tags: ["Auth"],
         summary: "Register a new user",
         description:
-          "Creates a new user account. Returns the user profile along with access and refresh tokens. Email and phone must be unique.",
+          "Creates a new user account. Returns the user profile along with access and refresh tokens. Email and phone must be unique. Any existing refresh tokens for the user are revoked.",
         requestBody: {
           required: true,
           content: {
@@ -99,7 +99,7 @@ export const swaggerDocument = {
         tags: ["Auth"],
         summary: "Login",
         description:
-          "Authenticates a user with email, account type, and password. Returns access and refresh tokens on success.",
+          "Authenticates a user with email and password. Returns access and refresh tokens on success. Previous refresh tokens are revoked.",
         requestBody: {
           required: true,
           content: {
@@ -107,7 +107,6 @@ export const swaggerDocument = {
               schema: { $ref: "#/components/schemas/LoginRequest" },
               example: {
                 email: "john@example.com",
-                accountType: "individual/business",
                 password: "secret123",
               },
             },
@@ -146,7 +145,7 @@ export const swaggerDocument = {
         tags: ["Auth"],
         summary: "Sign in with Google",
         description:
-          "Authenticates a user using a Google ID token obtained from the mobile Google Sign-In SDK. If the user does not exist, a new account is created automatically. If the email is already registered with a different provider, a 409 error is returned.",
+          "Authenticates a user using a Google ID token obtained from the mobile Google Sign-In SDK. Looks up the user by Google provider ID first; if not found, checks email uniqueness and creates a new account. `accountType` is only used when creating a new account (defaults to `individual/business` if omitted). Previous refresh tokens are revoked on login.",
         requestBody: {
           required: true,
           content: {
@@ -154,7 +153,6 @@ export const swaggerDocument = {
               schema: { $ref: "#/components/schemas/GoogleLoginRequest" },
               example: {
                 idToken: "eyJhbGciOiJSUzI1NiIs...",
-                accountType: "individual/business",
               },
             },
           },
@@ -185,13 +183,13 @@ export const swaggerDocument = {
             },
           },
           "409": {
-            description: "Email already registered with a different auth provider",
+            description: "Email already associated with another sign-in method",
             content: {
               "application/json": {
                 schema: { $ref: "#/components/schemas/ErrorResponse" },
                 example: {
                   success: false,
-                  message: "This email is already registered with local sign-in",
+                  message: "This email is already associated with another sign-in method",
                 },
               },
             },
@@ -204,7 +202,7 @@ export const swaggerDocument = {
         tags: ["Auth"],
         summary: "Sign in with Apple",
         description:
-          "Authenticates a user using an Apple ID token obtained from the mobile Sign in with Apple SDK. If the user does not exist, a new account is created. Apple only provides the user's name on the very first authorization, so pass `fullName` on the initial sign-in.",
+          "Authenticates a user using an Apple ID token obtained from the mobile Sign in with Apple SDK. Looks up the user by Apple provider ID first; if not found, checks email uniqueness and creates a new account. `accountType` is only used when creating a new account (defaults to `individual/business` if omitted). Apple only provides the user's name on the very first authorization, so pass `fullName` on the initial sign-in. Previous refresh tokens are revoked on login.",
         requestBody: {
           required: true,
           content: {
@@ -212,7 +210,6 @@ export const swaggerDocument = {
               schema: { $ref: "#/components/schemas/AppleLoginRequest" },
               example: {
                 idToken: "eyJhbGciOiJSUzI1NiIs...",
-                accountType: "driver",
                 fullName: "Jane Doe",
               },
             },
@@ -244,13 +241,13 @@ export const swaggerDocument = {
             },
           },
           "409": {
-            description: "Email already registered with a different auth provider",
+            description: "Email already associated with another sign-in method",
             content: {
               "application/json": {
                 schema: { $ref: "#/components/schemas/ErrorResponse" },
                 example: {
                   success: false,
-                  message: "This email is already registered with google sign-in",
+                  message: "This email is already associated with another sign-in method",
                 },
               },
             },
@@ -263,7 +260,7 @@ export const swaggerDocument = {
         tags: ["Auth"],
         summary: "Refresh access token",
         description:
-          "Exchanges a valid refresh token for a new short-lived access token. The refresh token itself is not rotated.",
+          "Exchanges a valid refresh token for a new access token **and** a new refresh token (rotation). The old refresh token is invalidated. Clients must store the new refresh token for future use.",
         requestBody: {
           required: true,
           content: {
@@ -274,7 +271,7 @@ export const swaggerDocument = {
         },
         responses: {
           "200": {
-            description: "New access token issued",
+            description: "New access token and rotated refresh token issued",
             content: {
               "application/json": {
                 schema: {
@@ -285,6 +282,10 @@ export const swaggerDocument = {
                       type: "object",
                       properties: {
                         accessToken: { type: "string" },
+                        refreshToken: {
+                          type: "string",
+                          description: "New refresh token (old one is now invalid)",
+                        },
                       },
                     },
                   },
@@ -411,19 +412,15 @@ export const swaggerDocument = {
       },
       LoginRequest: {
         type: "object",
-        required: ["email", "accountType", "password"],
+        required: ["email", "password"],
         properties: {
           email: { type: "string", format: "email" },
-          accountType: {
-            type: "string",
-            enum: ["individual/business", "driver"],
-          },
           password: { type: "string" },
         },
       },
       GoogleLoginRequest: {
         type: "object",
-        required: ["idToken", "accountType"],
+        required: ["idToken"],
         properties: {
           idToken: {
             type: "string",
@@ -432,12 +429,13 @@ export const swaggerDocument = {
           accountType: {
             type: "string",
             enum: ["individual/business", "driver"],
+            description: "Only used for first-time sign-up; defaults to individual/business",
           },
         },
       },
       AppleLoginRequest: {
         type: "object",
-        required: ["idToken", "accountType"],
+        required: ["idToken"],
         properties: {
           idToken: {
             type: "string",
@@ -446,6 +444,7 @@ export const swaggerDocument = {
           accountType: {
             type: "string",
             enum: ["individual/business", "driver"],
+            description: "Only used for first-time sign-up; defaults to individual/business",
           },
           fullName: {
             type: "string",

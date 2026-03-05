@@ -54,13 +54,16 @@ async function issueTokens(user: {
 
   const refreshToken = generateRefreshToken();
 
-  await prisma.refreshToken.create({
-    data: {
-      token: refreshToken,
-      userId: user.id,
-      expiresAt: new Date(Date.now() + REFRESH_TOKEN_EXPIRY_MS),
-    },
-  });
+  await prisma.$transaction([
+    prisma.refreshToken.deleteMany({ where: { userId: user.id } }),
+    prisma.refreshToken.create({
+      data: {
+        token: refreshToken,
+        userId: user.id,
+        expiresAt: new Date(Date.now() + REFRESH_TOKEN_EXPIRY_MS),
+      },
+    }),
+  ]);
 
   return {
     user: {
@@ -113,11 +116,7 @@ export async function registerUser(data: {
   return issueTokens(user);
 }
 
-export async function loginUser(data: {
-  email: string;
-  accountType: string;
-  password: string;
-}) {
+export async function loginUser(data: { email: string; password: string }) {
   const user = await prisma.user.findUnique({
     where: { email: data.email.toLowerCase() },
   });
@@ -127,15 +126,7 @@ export async function loginUser(data: {
   }
 
   if (user.authProvider !== AuthProvider.LOCAL) {
-    throw new AppError(
-      401,
-      `This account uses ${user.authProvider.toLowerCase()} sign-in`,
-    );
-  }
-
-  const accountTypeEnum = mapAccountType(data.accountType);
-  if (user.accountType !== accountTypeEnum) {
-    throw new AppError(401, "Invalid account type for this user");
+    throw new AppError(401, "Invalid email or password");
   }
 
   const passwordValid = await bcrypt.compare(data.password, user.password);
@@ -148,7 +139,7 @@ export async function loginUser(data: {
 
 export async function googleLogin(data: {
   idToken: string;
-  accountType: string;
+  accountType?: string;
 }) {
   let payload;
   try {
@@ -165,41 +156,45 @@ export async function googleLogin(data: {
     throw new AppError(401, "Google token missing email");
   }
 
-  const accountTypeEnum = mapAccountType(data.accountType);
-
-  let user = await prisma.user.findUnique({
-    where: { email: payload.email.toLowerCase() },
+  let user = await prisma.user.findFirst({
+    where: { authProvider: AuthProvider.GOOGLE, providerId: payload.sub },
   });
 
   if (user) {
-    if (user.authProvider !== AuthProvider.GOOGLE) {
-      throw new AppError(
-        409,
-        `This email is already registered with ${user.authProvider.toLowerCase()} sign-in`,
-      );
-    }
-    if (user.accountType !== accountTypeEnum) {
-      throw new AppError(401, "Invalid account type for this user");
-    }
-  } else {
-    user = await prisma.user.create({
-      data: {
-        name: payload.name || payload.email.split("@")[0],
-        email: payload.email.toLowerCase(),
-        accountType: accountTypeEnum,
-        authProvider: AuthProvider.GOOGLE,
-        providerId: payload.sub,
-        isVerified: payload.email_verified ?? false,
-      },
-    });
+    return issueTokens(user);
   }
+
+  const existingByEmail = await prisma.user.findUnique({
+    where: { email: payload.email.toLowerCase() },
+  });
+  if (existingByEmail) {
+    throw new AppError(
+      409,
+      "This email is already associated with another sign-in method",
+    );
+  }
+
+  const accountTypeEnum = data.accountType
+    ? mapAccountType(data.accountType)
+    : AccountType.INDIVIDUAL_BUSINESS;
+
+  user = await prisma.user.create({
+    data: {
+      name: payload.name || payload.email.split("@")[0],
+      email: payload.email.toLowerCase(),
+      accountType: accountTypeEnum,
+      authProvider: AuthProvider.GOOGLE,
+      providerId: payload.sub,
+      isVerified: payload.email_verified ?? false,
+    },
+  });
 
   return issueTokens(user);
 }
 
 export async function appleLogin(data: {
   idToken: string;
-  accountType: string;
+  accountType?: string;
   fullName?: string;
 }) {
   let appleClaims;
@@ -220,36 +215,41 @@ export async function appleLogin(data: {
     throw new AppError(401, "Apple token missing email");
   }
 
-  const accountTypeEnum = mapAccountType(data.accountType);
-
-  let user = await prisma.user.findUnique({
-    where: { email: email.toLowerCase() },
+  let user = await prisma.user.findFirst({
+    where: { authProvider: AuthProvider.APPLE, providerId: sub },
   });
 
   if (user) {
-    if (user.authProvider !== AuthProvider.APPLE) {
-      throw new AppError(
-        409,
-        `This email is already registered with ${user.authProvider.toLowerCase()} sign-in`,
-      );
-    }
-    if (user.accountType !== accountTypeEnum) {
-      throw new AppError(401, "Invalid account type for this user");
-    }
-  } else {
-    // Apple only sends the name on the first authorization
-    const name = data.fullName || email.split("@")[0];
-    user = await prisma.user.create({
-      data: {
-        name,
-        email: email.toLowerCase(),
-        accountType: accountTypeEnum,
-        authProvider: AuthProvider.APPLE,
-        providerId: sub,
-        isVerified: (appleClaims.email_verified as boolean) ?? false,
-      },
-    });
+    return issueTokens(user);
   }
+
+  const existingByEmail = await prisma.user.findUnique({
+    where: { email: email.toLowerCase() },
+  });
+  if (existingByEmail) {
+    throw new AppError(
+      409,
+      "This email is already associated with another sign-in method",
+    );
+  }
+
+  const accountTypeEnum = data.accountType
+    ? mapAccountType(data.accountType)
+    : AccountType.INDIVIDUAL_BUSINESS;
+
+  const name = data.fullName || email.split("@")[0];
+  user = await prisma.user.create({
+    data: {
+      name,
+      email: email.toLowerCase(),
+      accountType: accountTypeEnum,
+      authProvider: AuthProvider.APPLE,
+      providerId: sub,
+      isVerified:
+        appleClaims.email_verified === "true" ||
+        appleClaims.email_verified === true,
+    },
+  });
 
   return issueTokens(user);
 }
@@ -267,12 +267,25 @@ export async function refreshAccessToken(token: string) {
     throw new AppError(401, "Invalid or expired refresh token");
   }
 
+  const newRefreshToken = generateRefreshToken();
+
+  const [, created] = await prisma.$transaction([
+    prisma.refreshToken.delete({ where: { id: stored.id } }),
+    prisma.refreshToken.create({
+      data: {
+        token: newRefreshToken,
+        userId: stored.userId,
+        expiresAt: new Date(Date.now() + REFRESH_TOKEN_EXPIRY_MS),
+      },
+    }),
+  ]);
+
   const accessToken = generateAccessToken({
     userId: stored.user.id,
     accountType: accountTypeToString(stored.user.accountType),
   });
 
-  return { accessToken };
+  return { accessToken, refreshToken: created.token };
 }
 
 export async function logoutUser(token: string) {
@@ -306,4 +319,13 @@ export async function getProfile(userId: string) {
     accountType: accountTypeToString(user.accountType),
     authProvider: user.authProvider.toLowerCase(),
   };
+}
+
+export async function purgeExpiredRefreshTokens() {
+  const { count } = await prisma.refreshToken.deleteMany({
+    where: { expiresAt: { lt: new Date() } },
+  });
+  if (count > 0) {
+    console.log(`Purged ${count} expired refresh token(s)`);
+  }
 }

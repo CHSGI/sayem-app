@@ -12,7 +12,7 @@ export function authenticate(
   const header = req.headers.authorization;
 
   if (!header?.startsWith("Bearer ")) {
-    throw new AppError(401, "Authentication required");
+    return next(new AppError(401, "Authentication required"));
   }
 
   const token = header.split(" ")[1];
@@ -22,6 +22,6 @@ export function authenticate(
     req.user = payload;
     next();
   } catch {
-    throw new AppError(401, "Invalid or expired token");
+    next(new AppError(401, "Invalid or expired token"));
   }
 }

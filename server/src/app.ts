@@ -1,14 +1,22 @@
 import express from "express";
 import cors from "cors";
+import morgan from "morgan";
 import swaggerUi from "swagger-ui-express";
 import authRoutes from "./routes/auth";
 import { errorHandler } from "./middleware/error";
 import { swaggerDocument } from "./config/swagger";
+import { env } from "./config/env";
 
 const app = express();
 
-app.use(cors());
-app.use(express.json());
+app.use(
+  cors({
+    origin: env.CORS_ORIGIN === "*" ? true : env.CORS_ORIGIN.split(","),
+    credentials: true,
+  }),
+);
+app.use(morgan("dev"));
+app.use(express.json({ limit: "1mb" }));
 
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument, {
   customSiteTitle: "Sayem Route API Docs",

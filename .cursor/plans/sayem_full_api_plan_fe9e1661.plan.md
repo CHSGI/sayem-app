@@ -2,7 +2,7 @@
 name: Sayem Full API Plan
 overview: A phased implementation plan for the complete Sayem Route Express API covering all 4 client portals (User Mobile, Driver Mobile, Merchant Web, Admin Web) with ~150 routes across 12 domains.
 todos:
-  - id: phase-1
+  - id: todo-1772715420157-h4lt10q8s
     content: "Phase 1: File uploads + KYC/Verification system (models, routes, admin review)"
     status: pending
   - id: phase-2
@@ -85,7 +85,7 @@ graph TD
 
 ---
 
-## Phase 0: Auth (DONE)
+## Phase 0: Auth 
 
 Already implemented in [server/src/services/auth.ts](server/src/services/auth.ts). Models: `User`, `RefreshToken`.
 

@@ -16,18 +16,17 @@ const registerSchema = z.object({
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
-  accountType: z.enum(["individual/business", "driver"]),
   password: z.string().min(1, "Password is required"),
 });
 
 const googleSchema = z.object({
   idToken: z.string().min(1, "Google ID token is required"),
-  accountType: z.enum(["individual/business", "driver"]),
+  accountType: z.enum(["individual/business", "driver"]).optional(),
 });
 
 const appleSchema = z.object({
   idToken: z.string().min(1, "Apple ID token is required"),
-  accountType: z.enum(["individual/business", "driver"]),
+  accountType: z.enum(["individual/business", "driver"]).optional(),
   fullName: z.string().optional(),
 });
 
