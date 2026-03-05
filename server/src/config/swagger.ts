@@ -129,7 +129,7 @@ export const swaggerDocument = {
           },
           "400": { $ref: "#/components/responses/ValidationError" },
           "401": {
-            description: "Invalid credentials or wrong account type",
+            description: "Invalid email or password",
             content: {
               "application/json": {
                 schema: { $ref: "#/components/schemas/ErrorResponse" },

@@ -9,10 +9,11 @@ import { env } from "./config/env";
 
 const app = express();
 
+const isWildcard = env.CORS_ORIGIN === "*";
 app.use(
   cors({
-    origin: env.CORS_ORIGIN === "*" ? true : env.CORS_ORIGIN.split(","),
-    credentials: true,
+    origin: isWildcard ? true : env.CORS_ORIGIN.split(",").map((o) => o.trim()),
+    credentials: !isWildcard,
   }),
 );
 app.use(morgan("dev"));

@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { OAuth2Client } from "google-auth-library";
 import { createRemoteJWKSet, jwtVerify } from "jose";
-import { AccountType, AuthProvider } from "@prisma/client";
+import { AccountType, AuthProvider, Prisma } from "@prisma/client";
 import { prisma } from "../lib/prisma";
 import { env } from "../config/env";
 import { AppError } from "../middleware/error";
@@ -164,30 +164,33 @@ export async function googleLogin(data: {
     return issueTokens(user);
   }
 
-  const existingByEmail = await prisma.user.findUnique({
-    where: { email: payload.email.toLowerCase() },
-  });
-  if (existingByEmail) {
-    throw new AppError(
-      409,
-      "This email is already associated with another sign-in method",
-    );
-  }
-
   const accountTypeEnum = data.accountType
     ? mapAccountType(data.accountType)
     : AccountType.INDIVIDUAL_BUSINESS;
 
-  user = await prisma.user.create({
-    data: {
-      name: payload.name || payload.email.split("@")[0],
-      email: payload.email.toLowerCase(),
-      accountType: accountTypeEnum,
-      authProvider: AuthProvider.GOOGLE,
-      providerId: payload.sub,
-      isVerified: payload.email_verified ?? false,
-    },
-  });
+  try {
+    user = await prisma.user.create({
+      data: {
+        name: payload.name || payload.email.split("@")[0],
+        email: payload.email.toLowerCase(),
+        accountType: accountTypeEnum,
+        authProvider: AuthProvider.GOOGLE,
+        providerId: payload.sub,
+        isVerified: payload.email_verified ?? false,
+      },
+    });
+  } catch (err) {
+    if (
+      err instanceof Prisma.PrismaClientKnownRequestError &&
+      err.code === "P2002"
+    ) {
+      throw new AppError(
+        409,
+        "This email is already associated with another sign-in method",
+      );
+    }
+    throw err;
+  }
 
   return issueTokens(user);
 }
@@ -223,33 +226,37 @@ export async function appleLogin(data: {
     return issueTokens(user);
   }
 
-  const existingByEmail = await prisma.user.findUnique({
-    where: { email: email.toLowerCase() },
-  });
-  if (existingByEmail) {
-    throw new AppError(
-      409,
-      "This email is already associated with another sign-in method",
-    );
-  }
-
   const accountTypeEnum = data.accountType
     ? mapAccountType(data.accountType)
     : AccountType.INDIVIDUAL_BUSINESS;
 
   const name = data.fullName || email.split("@")[0];
-  user = await prisma.user.create({
-    data: {
-      name,
-      email: email.toLowerCase(),
-      accountType: accountTypeEnum,
-      authProvider: AuthProvider.APPLE,
-      providerId: sub,
-      isVerified:
-        appleClaims.email_verified === "true" ||
-        appleClaims.email_verified === true,
-    },
-  });
+
+  try {
+    user = await prisma.user.create({
+      data: {
+        name,
+        email: email.toLowerCase(),
+        accountType: accountTypeEnum,
+        authProvider: AuthProvider.APPLE,
+        providerId: sub,
+        isVerified:
+          appleClaims.email_verified === "true" ||
+          appleClaims.email_verified === true,
+      },
+    });
+  } catch (err) {
+    if (
+      err instanceof Prisma.PrismaClientKnownRequestError &&
+      err.code === "P2002"
+    ) {
+      throw new AppError(
+        409,
+        "This email is already associated with another sign-in method",
+      );
+    }
+    throw err;
+  }
 
   return issueTokens(user);
 }

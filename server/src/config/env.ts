@@ -5,7 +5,7 @@ const envSchema = z.object({
   JWT_ACCESS_SECRET: z.string().min(32),
   GOOGLE_CLIENT_ID: z.string().min(1),
   APPLE_BUNDLE_ID: z.string().min(1),
-  CORS_ORIGIN: z.string().default("*"),
+  CORS_ORIGIN: z.string().min(1),
   PORT: z.coerce.number().default(4000),
 });
 
